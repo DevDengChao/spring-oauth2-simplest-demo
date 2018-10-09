@@ -23,6 +23,12 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Override
     protected void configure(AuthenticationManagerBuilder auth) throws Exception {
+        // Throw StackOverflowError when calling '/oauth/token' if 'super.configure(auth);' is not blocked
+        // StackOverflowError: null
+        // {
+        //     "error": "server_error",
+        //     "error_description": "Internal Server Error"
+        // }
         // super.configure(auth);
 
         auth.eraseCredentials(true)
