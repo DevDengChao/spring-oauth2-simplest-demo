@@ -3,6 +3,9 @@ package demo.oauth2;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
+/**
+ * See OptionalControllerTest
+ */
 @SpringBootApplication
 public class Application {
 
