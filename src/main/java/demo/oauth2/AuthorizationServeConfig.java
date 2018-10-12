@@ -36,6 +36,10 @@ public class AuthorizationServeConfig extends AuthorizationServerConfigurerAdapt
     @Override
     public void configure(ClientDetailsServiceConfigurer clients) throws Exception {
         super.configure(clients);
+        clients.inMemory()
+                .withClient("client")
+                .secret(passwordEncoder.encode("secret"))
+                .scopes("all");
     }
 
     @Override
