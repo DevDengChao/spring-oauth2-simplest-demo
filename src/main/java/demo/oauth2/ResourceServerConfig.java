@@ -9,6 +9,7 @@ import org.springframework.security.oauth2.config.annotation.web.configurers.Res
 @Configuration
 @EnableResourceServer
 public class ResourceServerConfig extends ResourceServerConfigurerAdapter {
+
     // Throw RuntimeException when accessing resource (even with token) if this is not configured
     // {
     //     "timestamp": "2018-10-09T14:20:22.580+0000",
@@ -26,5 +27,13 @@ public class ResourceServerConfig extends ResourceServerConfigurerAdapter {
     @Override
     public void configure(HttpSecurity http) throws Exception {
         super.configure(http);
+        // expose login page, otherwise user cannot login
+        http.requestMatchers()
+                // language=RegExp
+                .regexMatchers("/(?!login)")
+                .and()
+                .authorizeRequests()
+                .anyRequest()
+                .authenticated();
     }
 }
