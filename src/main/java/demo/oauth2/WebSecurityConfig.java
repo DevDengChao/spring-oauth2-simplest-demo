@@ -1,12 +1,15 @@
 package demo.oauth2;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
 import org.springframework.lang.NonNull;
+import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.oauth2.config.annotation.web.configurers.AuthorizationServerEndpointsConfigurer;
 
 @EnableWebSecurity(debug = true)
 public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
@@ -52,5 +55,16 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 .withUser("myUsername")
                 .password(passwordEncoder.encode("myPassword"))
                 .roles("USER");
+    }
+
+    /**
+     * provide an AuthenticationManager for {@link AuthorizationServeConfig} to enable password mode
+     *
+     * @see AuthorizationServeConfig#configure(AuthorizationServerEndpointsConfigurer)
+     */
+    @Bean
+    @Override
+    public AuthenticationManager authenticationManagerBean() throws Exception {
+        return super.authenticationManagerBean();
     }
 }
