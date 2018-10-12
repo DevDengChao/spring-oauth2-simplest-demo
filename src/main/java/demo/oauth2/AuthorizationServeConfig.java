@@ -30,6 +30,8 @@ public class AuthorizationServeConfig extends AuthorizationServerConfigurerAdapt
     @Override
     public void configure(AuthorizationServerSecurityConfigurer security) throws Exception {
         super.configure(security);
+        // Throw IllegalArgumentException when calling '/oauth/token' if this is not configured
+        // IllegalArgumentException: "There is no PasswordEncoder mapped for the id "null"
         security.passwordEncoder(passwordEncoder);
     }
 
@@ -39,6 +41,12 @@ public class AuthorizationServeConfig extends AuthorizationServerConfigurerAdapt
         clients.inMemory()
                 .withClient("client")
                 .secret(passwordEncoder.encode("secret"))
+                // Throw InvalidScopeException when calling '/oauth/token' if 'scope' is not configured
+                // InvalidScopeException: Empty scope (either the client or the user is not allowed the requested scopes)
+                // {
+                //     "error": "invalid_scope",
+                //     "error_description": "Empty scope (either the client or the user is not allowed the requested scopes)"
+                // }
                 .scopes("all");
     }
 
