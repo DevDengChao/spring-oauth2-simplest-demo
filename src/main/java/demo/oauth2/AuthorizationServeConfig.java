@@ -47,7 +47,9 @@ public class AuthorizationServeConfig extends AuthorizationServerConfigurerAdapt
                 //     "error": "invalid_scope",
                 //     "error_description": "Empty scope (either the client or the user is not allowed the requested scopes)"
                 // }
-                .scopes("all");
+                .scopes("all")
+                .authorizedGrantTypes("authorization_code", "implicit")
+                .redirectUris("https://www.bing.com");
     }
 
     @Override
