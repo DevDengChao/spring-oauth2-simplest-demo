@@ -3,12 +3,16 @@ package demo.oauth2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.lang.NonNull;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.crypto.password.DelegatingPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.config.annotation.configurers.ClientDetailsServiceConfigurer;
 import org.springframework.security.oauth2.config.annotation.web.configuration.AuthorizationServerConfigurerAdapter;
 import org.springframework.security.oauth2.config.annotation.web.configuration.EnableAuthorizationServer;
 import org.springframework.security.oauth2.config.annotation.web.configurers.AuthorizationServerEndpointsConfigurer;
 import org.springframework.security.oauth2.config.annotation.web.configurers.AuthorizationServerSecurityConfigurer;
+
+import java.util.Set;
 
 @Configuration
 @EnableAuthorizationServer
@@ -21,12 +25,20 @@ public class AuthorizationServeConfig extends AuthorizationServerConfigurerAdapt
     // }
     @NonNull
     private final PasswordEncoder passwordEncoder;
+    @NonNull
+    private final AuthenticationManager authenticationManager;
 
     @Autowired
-    public AuthorizationServeConfig(@NonNull PasswordEncoder passwordEncoder) {
+    public AuthorizationServeConfig(@NonNull PasswordEncoder passwordEncoder, @NonNull AuthenticationManager authenticationManager) {
         this.passwordEncoder = passwordEncoder;
+        this.authenticationManager = authenticationManager;
     }
 
+    /**
+     * Setup password encoder for client password encode/match
+     *
+     * @see DelegatingPasswordEncoder.UnmappedIdPasswordEncoder#matches(CharSequence, String)
+     */
     @Override
     public void configure(AuthorizationServerSecurityConfigurer security) throws Exception {
         super.configure(security);
@@ -47,11 +59,20 @@ public class AuthorizationServeConfig extends AuthorizationServerConfigurerAdapt
                 //     "error": "invalid_scope",
                 //     "error_description": "Empty scope (either the client or the user is not allowed the requested scopes)"
                 // }
-                .scopes("all");
+                .scopes("all")
+                .authorizedGrantTypes("password");
     }
 
+    /**
+     * Setup client
+     *
+     * @see org.springframework.security.oauth2.provider.request.DefaultOAuth2RequestValidator#validateScope(Set, Set)
+     */
     @Override
     public void configure(AuthorizationServerEndpointsConfigurer endpoints) throws Exception {
         super.configure(endpoints);
+        // Throw UnsupportedGrantTypeException when calling '/oauth/token' if this is not configured
+        // UnsupportedGrantTypeException: Unsupported grant type: password
+        endpoints.authenticationManager(authenticationManager);
     }
 }
