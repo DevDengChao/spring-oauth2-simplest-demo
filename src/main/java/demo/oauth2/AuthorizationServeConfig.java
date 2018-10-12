@@ -1,6 +1,9 @@
 package demo.oauth2;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.lang.NonNull;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.config.annotation.configurers.ClientDetailsServiceConfigurer;
 import org.springframework.security.oauth2.config.annotation.web.configuration.AuthorizationServerConfigurerAdapter;
 import org.springframework.security.oauth2.config.annotation.web.configuration.EnableAuthorizationServer;
@@ -16,10 +19,18 @@ public class AuthorizationServeConfig extends AuthorizationServerConfigurerAdapt
     //     "error": "unauthorized",
     //     "error_description": "Full authentication is required to access this resource"
     // }
+    @NonNull
+    private final PasswordEncoder passwordEncoder;
+
+    @Autowired
+    public AuthorizationServeConfig(@NonNull PasswordEncoder passwordEncoder) {
+        this.passwordEncoder = passwordEncoder;
+    }
 
     @Override
     public void configure(AuthorizationServerSecurityConfigurer security) throws Exception {
         super.configure(security);
+        security.passwordEncoder(passwordEncoder);
     }
 
     @Override
