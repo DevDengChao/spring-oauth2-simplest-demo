@@ -1,8 +1,11 @@
 package demo.oauth2;
 
+import demo.oauth2.custom.CustomAuthenticationProvider;
+import demo.oauth2.custom.CustomTokenGranter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.lang.NonNull;
+import org.springframework.security.crypto.password.DelegatingPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.config.annotation.configurers.ClientDetailsServiceConfigurer;
 import org.springframework.security.oauth2.config.annotation.web.configuration.AuthorizationServerConfigurerAdapter;
@@ -21,12 +24,21 @@ public class AuthorizationServeConfig extends AuthorizationServerConfigurerAdapt
     // }
     @NonNull
     private final PasswordEncoder passwordEncoder;
+    @NonNull
+    private final CustomAuthenticationProvider customAuthenticationProvider;
 
     @Autowired
-    public AuthorizationServeConfig(@NonNull PasswordEncoder passwordEncoder) {
+    public AuthorizationServeConfig(@NonNull PasswordEncoder passwordEncoder,
+                                    @NonNull CustomAuthenticationProvider customAuthenticationProvider) {
         this.passwordEncoder = passwordEncoder;
+        this.customAuthenticationProvider = customAuthenticationProvider;
     }
 
+    /**
+     * Setup password encoder for client password encode/match
+     *
+     * @see DelegatingPasswordEncoder.UnmappedIdPasswordEncoder#matches(CharSequence, String)
+     */
     @Override
     public void configure(AuthorizationServerSecurityConfigurer security) throws Exception {
         super.configure(security);
@@ -35,12 +47,16 @@ public class AuthorizationServeConfig extends AuthorizationServerConfigurerAdapt
         security.passwordEncoder(passwordEncoder);
     }
 
+    /**
+     * Setup grant type
+     */
     @Override
     public void configure(ClientDetailsServiceConfigurer clients) throws Exception {
         super.configure(clients);
         clients.inMemory()
                 .withClient("client")
                 .secret(passwordEncoder.encode("secret"))
+                .authorizedGrantTypes(CustomTokenGranter.GRANT_TYPE)// enable custom grant type
                 // Throw InvalidScopeException when calling '/oauth/token' if 'scope' is not configured
                 // InvalidScopeException: Empty scope (either the client or the user is not allowed the requested scopes)
                 // {
@@ -50,8 +66,16 @@ public class AuthorizationServeConfig extends AuthorizationServerConfigurerAdapt
                 .scopes("all");
     }
 
+    /**
+     * override endpoint's token granter
+     *
+     * @see AuthorizationServerEndpointsConfigurer#getDefaultTokenGranters()
+     */
     @Override
     public void configure(AuthorizationServerEndpointsConfigurer endpoints) throws Exception {
         super.configure(endpoints);
+        CustomTokenGranter customTokenGranter = new CustomTokenGranter(customAuthenticationProvider, endpoints.getTokenServices(), endpoints.getClientDetailsService(), endpoints.getOAuth2RequestFactory());
+        endpoints
+                .tokenGranter(customTokenGranter);
     }
 }
