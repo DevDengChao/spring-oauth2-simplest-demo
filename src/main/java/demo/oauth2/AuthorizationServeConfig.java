@@ -44,7 +44,8 @@ public class AuthorizationServeConfig extends AuthorizationServerConfigurerAdapt
         super.configure(security);
         // Throw IllegalArgumentException when calling '/oauth/token' if this is not configured
         // IllegalArgumentException: "There is no PasswordEncoder mapped for the id "null"
-        security.passwordEncoder(passwordEncoder);
+        security.passwordEncoder(passwordEncoder)
+                .checkTokenAccess("permitAll()");// allow anonymous call to /oauth/check_token
     }
 
     /**
