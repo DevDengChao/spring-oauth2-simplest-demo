@@ -1,5 +1,6 @@
 package demo.oauth2;
 
+import org.json.JSONObject;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -21,6 +22,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -66,12 +68,24 @@ public class OptionalControllerTest {
 
         JsonPathResultMatchers jsonPath = jsonPath("$.access_token");
 
-        mvc.perform(requestBuilder)
+        String content = mvc.perform(requestBuilder)
                 .andExpect(status().isOk())
                 .andExpect(jsonPath.exists())
                 .andExpect(jsonPath.isString())
                 .andExpect(jsonPath.isNotEmpty())
+                .andDo(print())
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
+
+        String token = new JSONObject(content).getString("access_token");
+        mvc.perform(get("/oauth/check_token")
+                .param("token", token))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.authorities").isArray())
+                .andExpect(jsonPath("$.authorities").isNotEmpty())
                 .andDo(print());
+
         // MockHttpServletRequest:
         //       HTTP Method = POST
         //       Request URI = /oauth/token
@@ -105,6 +119,43 @@ public class OptionalControllerTest {
         //           Headers = {Cache-Control=[no-store], Pragma=[no-cache], Content-Type=[application/json;charset=UTF-8]}
         //      Content type = application/json;charset=UTF-8
         //              Body = {"access_token":"dde99d0f-52a4-4d5a-a405-5ce6a71a3a35","token_type":"bearer","expires_in":43199,"scope":"all"}
+        //     Forwarded URL = null
+        //    Redirected URL = null
+        //           Cookies = []
+
+        // MockHttpServletRequest:
+        //       HTTP Method = GET
+        //       Request URI = /oauth/check_token
+        //        Parameters = {token=[65f08a91-4f6c-4617-b1cc-9f15128933cc]}
+        //           Headers = {}
+        //              Body = <no character encoding set>
+        //     Session Attrs = {}
+        //
+        // Handler:
+        //              Type = CheckTokenEndpoint
+        //            Method = public Map<String, ?> CheckTokenEndpoint.checkToken(String)
+        //
+        // Async:
+        //     Async started = false
+        //      Async result = null
+        //
+        // Resolved Exception:
+        //              Type = null
+        //
+        // ModelAndView:
+        //         View name = null
+        //              View = null
+        //             Model = null
+        //
+        // FlashMap:
+        //        Attributes = null
+        //
+        // MockHttpServletResponse:
+        //            Status = 200
+        //     Error message = null
+        //           Headers = {Content-Type=[application/json;charset=UTF-8]}
+        //      Content type = application/json;charset=UTF-8
+        //              Body = {"active":true,"exp":1539615864,"user_name":"myUsername","authorities":["ROLE_USER"],"client_id":"client","scope":["all"]}
         //     Forwarded URL = null
         //    Redirected URL = null
         //           Cookies = []
